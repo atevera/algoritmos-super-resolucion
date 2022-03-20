@@ -50,16 +50,22 @@ def check_size(dataset, files, size):
 
 def make_low_resolution(dataset, outpath, scale):
     """
-    Algoritmo para preparar la base de datos de baja resolución cumpliendo con el
-    siguiente proceso:
-    1. Reducción de tamaño dado el factor 'scale'.
-    2. Interpolación bicúbica para recuperar las dimensiones pero NO su calidad (detalles).
+    Función para reducir las dimensiones de una imagen a partir de un factor de escalado.
     """
     count = 0
     for img in dataset:
-        img_ = cv2.resize(img, None, fx = scale, fy = scale)
-        img_BC = cv2.resize(img_, None, fx = 1/scale, fy = 1/scale, interpolation = cv2.INTER_CUBIC)
-        cv2.imwrite(outpath[count],img_BC)
+        img_LR = cv2.resize(img, None, fx = scale, fy = scale)
+        cv2.imwrite(outpath[count],img_LR)
+        count += 1
+
+def apply_bicubic(dataset, outpath, scale):
+    """
+    Aplica interpolación bicúbica para aumentar la cantidad de pixeles dada una imágen de baja resolución. 
+    """
+    count = 0
+    for img in dataset:
+        img_CS = cv2.resize(img, None, fx = 1/scale, fy = 1/scale, interpolation = cv2.INTER_CUBIC)
+        cv2.imwrite(outpath[count],img_CS)
         count += 1
 
 
@@ -68,9 +74,14 @@ if __name__ == "__main__":
 
     pathHR = 'dataset/HR'
     pathLR = 'dataset/LR'
+    pathCS = 'dataset/CS'
+
     files = get_files(pathHR)
     pathFilesHR = make_directory(pathHR, files)
     pathFilesLR = make_directory(pathLR, files)
+    pathFilesCS = make_directory(pathCS, files)
     imagesHR = get_images(pathFilesHR)
     check_size(imagesHR, files, dim_img)
     make_low_resolution(imagesHR, pathFilesLR, reduce_img)
+    imagesLR = get_images(pathFilesLR)
+    apply_bicubic(imagesLR, pathFilesCS, reduce_img)
